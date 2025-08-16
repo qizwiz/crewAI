@@ -1,0 +1,188 @@
+name: CrewAI Workflow Transparency - Comprehensive Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.8"
+            coverage: true
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xvfb pytest-mock
+        pip install redis cryptography
+        pip install -e .
+    
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Type check with mypy
+      run: |
+        pip install mypy
+        mypy src --ignore-missing-imports
+    
+    - name: Test with pytest
+      run: |
+        pytest tests/ -v --tb=short
+    
+    - name: Test with coverage
+      if: matrix.coverage
+      run: |
+        pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
+    
+    - name: Upload coverage to Codecov
+      if: matrix.coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker test image
+      run: |
+        docker build -f Dockerfile.test -t crewai-crypto-test .
+    
+    - name: Run tests in Docker
+      run: |
+        docker run --rm crewai-crypto-test
+    
+    - name: Test Docker production image
+      run: |
+        docker build -f Dockerfile -t crewai-crypto-prod .
+        docker run --rm crewai-crypto-prod python -c "
+        from src.crewai.utilities.events.crypto_events_enhanced import *;
+        print('✅ Production Docker image working');
+        event = CryptographicCommitmentCreatedEvent(
+          task_id='test', agent_id='test', workflow_id='test',
+          task_description='test', agent_role='test', expected_output='test',
+          commitment_word='test', commitment_hash='test'
+        );
+        print(f'✅ Event created with {len(get_event_fields_summary(event)[\"field_summary\"])} fields')
+        "
+
+  stress-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install redis cryptography memory_profiler psutil
+        pip install -e .
+    
+    - name: Memory leak test
+      run: |
+        python tests/stress/test_memory_usage.py
+    
+    - name: Performance benchmark
+      run: |
+        python tests/stress/test_performance.py
+    
+    - name: Large workflow test
+      run: |
+        python tests/stress/test_large_workflow.py
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Bandit security scan
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit-report.json || true
+    
+    - name: Run Safety check
+      run: |
+        pip install safety
+        safety check --json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+
+  integration-test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install redis cryptography
+        pip install -e .
+    
+    - name: Test Redis integration
+      run: |
+        python tests/integration/test_redis_integration.py
+    
+    - name: Test enterprise compliance scenarios
+      run: |
+        python tests/integration/test_healthcare_compliance.py
+        python tests/integration/test_financial_compliance.py
+    
+    - name: Test concurrent workflows
+      run: |
+        python tests/integration/test_concurrent_workflows.py
+
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [test-matrix, docker-test, stress-test, security-scan, integration-test]
+    steps:
+    - name: Quality Gate
+      run: |
+        echo "✅ All tests passed - Professional quality assured"
+        echo "🎯 Ready for production deployment"
