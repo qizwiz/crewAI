@@ -44,7 +44,7 @@ class PlusAPIMixin:
                 style="bold red",
             )
             console.print(f"Status Code: {response.status_code}")
-            console.print(f"Response:\n{response.content}")
+            console.print(f"Response:\n{response.content.decode('utf-8', errors='replace')}")
             raise SystemExit
 
         if response.status_code == 422:
@@ -68,5 +68,5 @@ class PlusAPIMixin:
                 or json_response.get("message")
                 or response.content
             )
-            console.print(f"{details}")
+            console.print(f"{details.decode('utf-8', errors='replace') if isinstance(details, bytes) else details}")
             raise SystemExit

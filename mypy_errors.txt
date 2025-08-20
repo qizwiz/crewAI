@@ -1,0 +1,44 @@
+src/crewai/tasks/task_output.py:38: error: Signature of "json" incompatible with supertype "BaseModel"  [override]
+src/crewai/tasks/task_output.py:38: note:      Superclass:
+src/crewai/tasks/task_output.py:38: note:          def json(self, *, include: IncEx | None = ..., exclude: IncEx | None = ..., by_alias: bool = ..., exclude_unset: bool = ..., exclude_defaults: bool = ..., exclude_none: bool = ..., encoder: Callable[[Any], Any] | None = ..., models_as_dict: bool = ..., **dumps_kwargs: Any) -> str
+src/crewai/tasks/task_output.py:38: note:      Subclass:
+src/crewai/tasks/task_output.py:38: note:          str | None
+src/crewai/tools/structured_tool.py:145: error: No overload variant of "create_model" matches argument types "str", "dict[str, tuple[Any, Any]]"  [call-overload]
+src/crewai/tools/structured_tool.py:145: note: Possible overload variants:
+src/crewai/tools/structured_tool.py:145: note:     def create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: None = ..., __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[BaseModel]
+src/crewai/tools/structured_tool.py:145: note:     def [ModelT: BaseModel] create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: type[ModelT] | tuple[type[ModelT], ...], __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[ModelT]
+src/crewai/crews/crew_output.py:27: error: Signature of "json" incompatible with supertype "BaseModel"  [override]
+src/crewai/crews/crew_output.py:27: note:      Superclass:
+src/crewai/crews/crew_output.py:27: note:          def json(self, *, include: IncEx | None = ..., exclude: IncEx | None = ..., by_alias: bool = ..., exclude_unset: bool = ..., exclude_defaults: bool = ..., exclude_none: bool = ..., encoder: Callable[[Any], Any] | None = ..., models_as_dict: bool = ..., **dumps_kwargs: Any) -> str
+src/crewai/crews/crew_output.py:27: note:      Subclass:
+src/crewai/crews/crew_output.py:27: note:          str | None
+src/crewai/tools/base_tool.py:108: error: No overload variant of "create_model" matches argument types "str", "dict[str, tuple[Any | <typing special form>, Any]]"  [call-overload]
+src/crewai/tools/base_tool.py:108: note: Possible overload variants:
+src/crewai/tools/base_tool.py:108: note:     def create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: None = ..., __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[BaseModel]
+src/crewai/tools/base_tool.py:108: note:     def [ModelT: BaseModel] create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: type[ModelT] | tuple[type[ModelT], ...], __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[ModelT]
+src/crewai/tools/base_tool.py:115: error: Unexpected keyword argument "func" for "BaseTool"  [call-arg]
+src/crewai/tools/base_tool.py:216: error: No overload variant of "create_model" matches argument types "str", "dict[str, tuple[Any | <typing special form>, Any]]"  [call-overload]
+src/crewai/tools/base_tool.py:216: note: Possible overload variants:
+src/crewai/tools/base_tool.py:216: note:     def create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: None = ..., __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[BaseModel]
+src/crewai/tools/base_tool.py:216: note:     def [ModelT: BaseModel] create_model(str, /, *, __config__: ConfigDict | None = ..., __doc__: str | None = ..., __base__: type[ModelT] | tuple[type[ModelT], ...], __module__: str = ..., __validators__: dict[str, Callable[..., Any]] | None = ..., __cls_kwargs__: dict[str, Any] | None = ..., **field_definitions: Any) -> type[ModelT]
+src/crewai/knowledge/embedder/fastembed.py:50: error: Return type "list[ndarray[Any, Any]]" of "embed_chunks" incompatible with return type "ndarray[Any, Any]" in supertype "BaseEmbedder"  [override]
+src/crewai/knowledge/embedder/fastembed.py:63: error: Return type "list[ndarray[Any, Any]]" of "embed_texts" incompatible with return type "ndarray[Any, Any]" in supertype "BaseEmbedder"  [override]
+src/crewai/llm.py:188: error: Unsupported right operand type for in ("list[Any] | None")  [operator]
+src/crewai/llm.py:196: error: Unsupported right operand type for in ("list[Any] | None")  [operator]
+src/crewai/utilities/token_counter_callback.py:15: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/crewai/knowledge/storage/knowledge_storage.py:158: error: Incompatible types in assignment (expression has type "list[dict[str, Any] | None] | None", variable has type "Mapping[str, str | int | float | bool] | list[Mapping[str, str | int | float | bool]] | None")  [assignment]
+src/crewai/task.py:404: error: Signature of "copy" incompatible with supertype "BaseModel"  [override]
+src/crewai/task.py:404: note:      Superclass:
+src/crewai/task.py:404: note:          def copy(self, *, include: AbstractSet[int] | AbstractSet[str] | Mapping[int, Any] | Mapping[str, Any] | None = ..., exclude: AbstractSet[int] | AbstractSet[str] | Mapping[int, Any] | Mapping[str, Any] | None = ..., update: dict[str, Any] | None = ..., deep: bool = ...) -> Task
+src/crewai/task.py:404: note:      Subclass:
+src/crewai/task.py:404: note:          def copy(self, agents: list[BaseAgent], task_mapping: dict[str, Task]) -> Task
+src/crewai/tools/agent_tools/base_agent_tools.py:61: error: Incompatible types in assignment (expression has type "BaseAgent", variable has type "list[BaseAgent]")  [assignment]
+src/crewai/tools/agent_tools/base_agent_tools.py:64: error: Argument "agent" to "Task" has incompatible type "list[BaseAgent]"; expected "BaseAgent | None"  [arg-type]
+src/crewai/tools/agent_tools/base_agent_tools.py:65: error: "list[BaseAgent]" has no attribute "i18n"  [attr-defined]
+src/crewai/tools/agent_tools/base_agent_tools.py:66: error: "list[BaseAgent]" has no attribute "i18n"  [attr-defined]
+src/crewai/tools/agent_tools/base_agent_tools.py:68: error: "list[BaseAgent]" has no attribute "execute_task"  [attr-defined]
+src/crewai/flow/flow.py:199: error: Incompatible return value type (got "BaseModel | dict[str, Any]", expected "T")  [return-value]
+src/crewai/tools/tool_usage.py:226: error: Argument "tool_calling" to "on_tool_use_finished" of "ToolUsage" has incompatible type "ToolCalling | InstructorToolCalling"; expected "ToolCalling"  [arg-type]
+src/crewai/cli/command.py:47: error: If x = b'abc' then f"{x}" or "{}".format(x) produces "b'abc'", not "abc". If this is desired behavior, use f"{x!r}" or "{!r}".format(x). Otherwise, decode the bytes  [str-bytes-safe]
+src/crewai/cli/command.py:71: error: If x = b'abc' then f"{x}" or "{}".format(x) produces "b'abc'", not "abc". If this is desired behavior, use f"{x!r}" or "{!r}".format(x). Otherwise, decode the bytes  [str-bytes-safe]
+Found 21 errors in 12 files (checked 151 source files)
