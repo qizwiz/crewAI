@@ -74,7 +74,7 @@ The output should be raw JSON that exactly matches the specified schema.
                         # Validate it's proper JSON
                         json.loads(extracted)
                         return extracted
-                    except:
+                    except (ValueError, json.JSONDecodeError):
                         pass
 
         return result
