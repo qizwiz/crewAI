@@ -4,9 +4,10 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from crewai.tasks.output_format import OutputFormat
+from crewai.utilities.json_compatibility import JsonBackwardCompatibilityMixin
 
 
-class TaskOutput(BaseModel):
+class TaskOutput(BaseModel, JsonBackwardCompatibilityMixin):
     """Class that represents the result of a task."""
 
     description: str = Field(description="Description of the task")
@@ -47,10 +48,6 @@ class TaskOutput(BaseModel):
 
         return json.dumps(self.json_dict)
 
-    @property
-    def json(self) -> Optional[str]:
-        """Backward compatibility property for existing tests."""
-        return self.json_output
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""

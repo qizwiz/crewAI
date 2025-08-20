@@ -6,9 +6,10 @@ from pydantic import BaseModel, Field
 from crewai.tasks.output_format import OutputFormat
 from crewai.tasks.task_output import TaskOutput
 from crewai.types.usage_metrics import UsageMetrics
+from crewai.utilities.json_compatibility import JsonBackwardCompatibilityMixin
 
 
-class CrewOutput(BaseModel):
+class CrewOutput(BaseModel, JsonBackwardCompatibilityMixin):
     """Class that represents the result of a crew."""
 
     raw: str = Field(description="Raw output of crew", default="")
@@ -32,10 +33,6 @@ class CrewOutput(BaseModel):
 
         return json.dumps(self.json_dict)
 
-    @property
-    def json(self) -> Optional[str]:
-        """Backward compatibility property for existing tests."""
-        return self.json_output
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""
