@@ -75,6 +75,17 @@ class RAGStorage(BaseRAGStorage):
             self.collection = self.app.get_collection(
                 name=self.type, embedding_function=self.embedder_config
             )
+        except KeyError as e:
+            # Handle ChromaDB configuration format incompatibility (missing '_type' field)
+            if "_type" in str(e):
+                # Reset ChromaDB client to clear incompatible configuration
+                if self.allow_reset:
+                    self.app.reset()
+                self.collection = self.app.create_collection(
+                    name=self.type, embedding_function=self.embedder_config
+                )
+            else:
+                raise
         except Exception:
             self.collection = self.app.create_collection(
                 name=self.type, embedding_function=self.embedder_config
