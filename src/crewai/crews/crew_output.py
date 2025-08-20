@@ -6,9 +6,10 @@ from pydantic import BaseModel, Field
 from crewai.tasks.output_format import OutputFormat
 from crewai.tasks.task_output import TaskOutput
 from crewai.types.usage_metrics import UsageMetrics
+from crewai.utilities.json_compatibility import JsonPropertyMixin
 
 
-class CrewOutput(BaseModel):
+class CrewOutput(JsonPropertyMixin, BaseModel):
     """Class that represents the result of a crew."""
 
     raw: str = Field(description="Raw output of crew", default="")
@@ -24,13 +25,17 @@ class CrewOutput(BaseModel):
     token_usage: UsageMetrics = Field(description="Processed token summary", default={})
 
     @property
-    def json(self) -> Optional[str]:
-        if self.tasks_output[-1].output_format != OutputFormat.JSON:
+    def json_output(self) -> Optional[str]:
+        if self.json_dict is not None:
+            return json.dumps(self.json_dict)
+        
+        if self.tasks_output and self.tasks_output[-1].output_format != OutputFormat.JSON:
             raise ValueError(
                 "No JSON output found in the final task. Please make sure to set the output_json property in the final task in your crew."
             )
 
-        return json.dumps(self.json_dict)
+        return None
+
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""

@@ -4,9 +4,10 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from crewai.tasks.output_format import OutputFormat
+from crewai.utilities.json_compatibility import JsonPropertyMixin
 
 
-class TaskOutput(BaseModel):
+class TaskOutput(JsonPropertyMixin, BaseModel):
     """Class that represents the result of a task."""
 
     description: str = Field(description="Description of the task")
@@ -35,7 +36,7 @@ class TaskOutput(BaseModel):
         return self
 
     @property
-    def json(self) -> Optional[str]:
+    def json_output(self) -> Optional[str]:
         if self.output_format != OutputFormat.JSON:
             raise ValueError(
                 """
@@ -46,6 +47,7 @@ class TaskOutput(BaseModel):
             )
 
         return json.dumps(self.json_dict)
+
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""
