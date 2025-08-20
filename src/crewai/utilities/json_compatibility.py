@@ -8,7 +8,7 @@ json properties to avoid conflicts with Pydantic's built-in json() method.
 from typing import Optional
 
 
-class JsonBackwardCompatibilityMixin:
+class JsonPropertyMixin:
     """
     Mixin that provides backward compatibility for json property access.
     

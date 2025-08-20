@@ -6,10 +6,10 @@ from pydantic import BaseModel, Field
 from crewai.tasks.output_format import OutputFormat
 from crewai.tasks.task_output import TaskOutput
 from crewai.types.usage_metrics import UsageMetrics
-from crewai.utilities.json_compatibility import JsonBackwardCompatibilityMixin
+from crewai.utilities.json_compatibility import JsonPropertyMixin
 
 
-class CrewOutput(BaseModel, JsonBackwardCompatibilityMixin):
+class CrewOutput(BaseModel, JsonPropertyMixin):
     """Class that represents the result of a crew."""
 
     raw: str = Field(description="Raw output of crew", default="")
