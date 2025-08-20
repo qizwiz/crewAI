@@ -9,7 +9,7 @@ from crewai.types.usage_metrics import UsageMetrics
 from crewai.utilities.json_compatibility import JsonPropertyMixin
 
 
-class CrewOutput(BaseModel, JsonPropertyMixin):
+class CrewOutput(JsonPropertyMixin, BaseModel):
     """Class that represents the result of a crew."""
 
     raw: str = Field(description="Raw output of crew", default="")

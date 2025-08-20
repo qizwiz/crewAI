@@ -7,7 +7,7 @@ from crewai.tasks.output_format import OutputFormat
 from crewai.utilities.json_compatibility import JsonPropertyMixin
 
 
-class TaskOutput(BaseModel, JsonPropertyMixin):
+class TaskOutput(JsonPropertyMixin, BaseModel):
     """Class that represents the result of a task."""
 
     description: str = Field(description="Description of the task")
