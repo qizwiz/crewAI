@@ -6,6 +6,9 @@ CrewAI Execution Tracer
 Provides workflow transparency by capturing crew execution steps and interactions.
 Enables developers to see what agents did and how they collaborated.
 
+Solution for CrewAI Issue #3268: Access to sequence of actions and detailed
+interaction logs including HumanMessage, AIMessage, ToolCall, ToolMessage.
+
 Usage:
     from crewai.utilities.execution_tracer import ExecutionTracer
     
