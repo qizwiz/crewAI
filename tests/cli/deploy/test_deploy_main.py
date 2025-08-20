@@ -62,7 +62,7 @@ class TestDeployCommand(unittest.TestCase):
                 in output
             )
             assert "Status Code: 500" in output
-            assert "Response:\nb'Invalid JSON'" in output
+            assert "Response:\nInvalid JSON" in output
 
     def test_validate_response_422_error(self):
         mock_response = Mock(spec=requests.Response)
