@@ -45,6 +45,7 @@ from crewai.utilities.formatter import (
     aggregate_raw_outputs_from_tasks,
 )
 from crewai.utilities.planning_handler import CrewPlanner
+from crewai.utilities.task_cloner import TaskCloner
 from crewai.utilities.task_output_storage_handler import TaskOutputStorageHandler
 from crewai.utilities.training_handler import CrewTrainingHandler
 
@@ -981,7 +982,7 @@ class Crew(BaseModel):
 
         cloned_tasks = []
         for task in self.tasks:
-            cloned_task = task.copy(cloned_agents, task_mapping)
+            cloned_task = TaskCloner.deep_copy(task, cloned_agents, task_mapping)
             cloned_tasks.append(cloned_task)
             task_mapping[task.key] = cloned_task
 
