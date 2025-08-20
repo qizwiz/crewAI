@@ -32,6 +32,11 @@ class CrewOutput(BaseModel):
 
         return json.dumps(self.json_dict)
 
+    @property
+    def json(self) -> Optional[str]:
+        """Backward compatibility property for existing tests."""
+        return self.json_output
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""
         output_dict = {}
