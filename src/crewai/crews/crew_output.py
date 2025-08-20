@@ -26,12 +26,15 @@ class CrewOutput(BaseModel, JsonPropertyMixin):
 
     @property
     def json_output(self) -> Optional[str]:
-        if self.tasks_output[-1].output_format != OutputFormat.JSON:
+        if self.json_dict is not None:
+            return json.dumps(self.json_dict)
+        
+        if self.tasks_output and self.tasks_output[-1].output_format != OutputFormat.JSON:
             raise ValueError(
                 "No JSON output found in the final task. Please make sure to set the output_json property in the final task in your crew."
             )
 
-        return json.dumps(self.json_dict)
+        return None
 
 
     def to_dict(self) -> Dict[str, Any]:
