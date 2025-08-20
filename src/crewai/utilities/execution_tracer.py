@@ -58,13 +58,22 @@ class ExecutionStep:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert step to dictionary for serialization"""
+        # Ensure metadata is JSON-serializable
+        json_safe_metadata = {}
+        for key, value in self.metadata.items():
+            try:
+                json.dumps(value)
+                json_safe_metadata[key] = value
+            except (TypeError, ValueError):
+                json_safe_metadata[key] = str(value)
+        
         return {
             "step_type": self.step_type.value,
             "agent": self.agent_name,
             "content": self.content,
             "timestamp": self.timestamp,
             "time": datetime.fromtimestamp(self.timestamp, tz=timezone.utc).strftime("%H:%M:%S.%f")[:-3],
-            "metadata": self.metadata
+            "metadata": json_safe_metadata
         }
 
 
@@ -75,7 +84,7 @@ class ExecutionTrace:
         self.steps: List[ExecutionStep] = []
         self.start_time = time.time()
     
-    def add_step(self, step_type: StepType, agent_name: str, content: str, **metadata) -> ExecutionStep:
+    def add_step(self, step_type: StepType, agent_name: str, content: str, **metadata: Any) -> ExecutionStep:
         """Add execution step to trace"""
         step = ExecutionStep(step_type, agent_name, content, metadata)
         self.steps.append(step)
