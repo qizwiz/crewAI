@@ -6,6 +6,7 @@ and provides consistent type handling with proper mypy compliance.
 """
 
 from typing import Any, Dict, Optional, Type
+
 from pydantic import BaseModel, create_model
 
 
