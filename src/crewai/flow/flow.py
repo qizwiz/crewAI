@@ -194,6 +194,14 @@ class Flow(Generic[T], metaclass=FlowMeta):
         if self.initial_state is None and hasattr(self, "_initial_state_T"):
             return cast(T, self._initial_state_T())
         if self.initial_state is None:
+            # Check if we have type information to create proper instance
+            if hasattr(self, "_initial_state_T"):
+                try:
+                    # Try to create instance of the bound type
+                    return cast(T, self._initial_state_T())
+                except Exception:
+                    # Fall back to empty dict
+                    return cast(T, {})
             return cast(T, {})
         elif isinstance(self.initial_state, type):
             return cast(T, self.initial_state())
