@@ -77,13 +77,23 @@ class RAGStorage(BaseRAGStorage):
             )
         except KeyError as e:
             # Handle ChromaDB configuration format incompatibility (missing '_type' field)
-            if "_type" in str(e):
-                # Reset ChromaDB client to clear incompatible configuration
+            if "_type" in str(e.args[0]) if e.args else False:
                 if self.allow_reset:
+                    # Log the destructive reset action
+                    logging.warning(
+                        f"ChromaDB configuration incompatibility detected for '{self.type}'. "
+                        "Resetting client and recreating collection to resolve '_type' field mismatch."
+                    )
                     self.app.reset()
-                self.collection = self.app.create_collection(
-                    name=self.type, embedding_function=self.embedder_config
-                )
+                    self.collection = self.app.create_collection(
+                        name=self.type, embedding_function=self.embedder_config
+                    )
+                else:
+                    raise RuntimeError(
+                        f"ChromaDB configuration incompatibility detected for '{self.type}' "
+                        "due to '_type' field mismatch. Set allow_reset=True to automatically "
+                        "resolve this by resetting the ChromaDB client and recreating collections."
+                    ) from e
             else:
                 raise
         except Exception:
