@@ -192,13 +192,13 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
     def _create_initial_state(self) -> T:
         if self.initial_state is None and hasattr(self, "_initial_state_T"):
-            return self._initial_state_T()  # type: ignore
+            return cast(T, self._initial_state_T())
         if self.initial_state is None:
-            return {}  # type: ignore
+            return cast(T, {})
         elif isinstance(self.initial_state, type):
-            return self.initial_state()
+            return cast(T, self.initial_state())
         else:
-            return self.initial_state
+            return cast(T, self.initial_state)
 
     @property
     def state(self) -> T:
