@@ -153,11 +153,15 @@ class KnowledgeStorage(BaseKnowledgeStorage):
                 filtered_metadata.append(meta)
                 filtered_ids.append(doc_id)
 
-            # Preserve alignment by keeping None values but handling them properly
-            # ChromaDB expects either None or a list matching document length
-            final_metadata: Optional[OneOrMany[chromadb.Metadata]] = (
-                filtered_metadata if any(m is not None for m in filtered_metadata) else None
-            )
+            # Handle metadata properly for ChromaDB type requirements
+            # ChromaDB expects consistent metadata structure
+            if all(m is None for m in filtered_metadata):
+                # If all metadata is None, pass None to ChromaDB
+                final_metadata: Optional[OneOrMany[chromadb.Metadata]] = None
+            else:
+                # Replace None values with empty dicts to maintain list alignment
+                # This ensures metadata list matches document list length
+                final_metadata = [m if m is not None else {} for m in filtered_metadata]
 
             self.collection.upsert(
                 documents=filtered_docs,
