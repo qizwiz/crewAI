@@ -7,7 +7,6 @@ Unit tests validating the execution tracer functionality without requiring
 external LLM API calls. Tests focus on the core tracing logic and data structures.
 """
 
-import time
 from unittest.mock import Mock
 
 import pytest
@@ -194,7 +193,7 @@ def test_execution_tracer_metadata_extraction():
     metadata = tracer._extract_metadata(agent_output)
     assert metadata["tool"] == "calculator"
     assert metadata["tool_input"] == {"operation": "2+2"}
-    assert metadata["result_as_answer"] == True
+    assert metadata["result_as_answer"]
     
     # Test object without metadata
     simple_output = Mock(spec=[])
@@ -269,7 +268,7 @@ def test_execution_tracer_callbacks():
     assert hasattr(crew_output, 'execution_steps')
     assert hasattr(crew_output, 'interaction_logs')
     assert hasattr(crew_output, 'tracing_enabled')
-    assert crew_output.tracing_enabled == True
+    assert crew_output.tracing_enabled
     assert len(crew_output.execution_steps) == 4
     assert crew_output.interaction_logs["total_steps"] == 4
 
