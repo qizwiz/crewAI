@@ -22,7 +22,6 @@ from crewai.utilities.events.agent_events import (
 )
 
 try:
-    from langchain_core.messages import ToolMessage
     from langgraph.checkpoint.memory import MemorySaver
     from langgraph.prebuilt import create_react_agent
 
