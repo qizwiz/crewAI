@@ -21,13 +21,13 @@ from crewai.utilities.execution_tracer import (
 
 def test_step_type_enum():
     """Test StepType enum values"""
-    assert StepType.HUMAN_MESSAGE == "HumanMessage"
-    assert StepType.AI_MESSAGE == "AIMessage"
-    assert StepType.TOOL_CALL == "ToolCall"
-    assert StepType.TOOL_MESSAGE == "ToolMessage"
-    assert StepType.TASK_COMPLETE == "TaskComplete"
-    assert StepType.CREW_START == "CrewStart"
-    assert StepType.CREW_COMPLETE == "CrewComplete"
+    assert StepType.HUMAN_MESSAGE.value == "HumanMessage"
+    assert StepType.AI_MESSAGE.value == "AIMessage"
+    assert StepType.TOOL_CALL.value == "ToolCall"
+    assert StepType.TOOL_MESSAGE.value == "ToolMessage"
+    assert StepType.TASK_COMPLETE.value == "TaskComplete"
+    assert StepType.CREW_START.value == "CrewStart"
+    assert StepType.CREW_COMPLETE.value == "CrewComplete"
 
 
 def test_execution_step_creation():
@@ -35,7 +35,7 @@ def test_execution_step_creation():
     metadata = {"tool": "calculator", "input": "2+2"}
     step = ExecutionStep(StepType.TOOL_CALL, "Agent1", "Calculate 2+2", metadata)
     
-    assert step.step_type == StepType.TOOL_CALL
+    assert step.step_type.value == StepType.TOOL_CALL.value
     assert step.agent_name == "Agent1"
     assert step.content == "Calculate 2+2"
     assert step.metadata == metadata
@@ -62,7 +62,7 @@ def test_execution_trace_basic():
     # Add a step
     step = trace.add_step(StepType.AI_MESSAGE, "Assistant", "Hello world")
     assert len(trace.steps) == 1
-    assert step.step_type == StepType.AI_MESSAGE
+    assert step.step_type.value == StepType.AI_MESSAGE.value
     
     # Test actions method
     actions = trace.actions()
@@ -121,7 +121,7 @@ def test_execution_tracer_step_categorization():
     tool_result.result = "42"
     tool_result.result_as_answer = True
     step_type = tracer._categorize_step("Tool returned: 42", tool_result)
-    assert step_type == StepType.TOOL_MESSAGE
+    assert step_type.value == StepType.TOOL_MESSAGE.value
     
     # Test ToolCall categorization
     agent_action = Mock(spec=[])  # No result/result_as_answer attributes
@@ -129,7 +129,7 @@ def test_execution_tracer_step_categorization():
     agent_action.tool = "calculator"
     agent_action.tool_input = "2+2"
     step_type = tracer._categorize_step("Using calculator", agent_action)
-    assert step_type == StepType.TOOL_CALL
+    assert step_type.value == StepType.TOOL_CALL.value
     
     # Test AIMessage categorization (AgentAction without tool)
     agent_action_no_tool = Mock(spec=[])  # No result/result_as_answer attributes
@@ -137,17 +137,17 @@ def test_execution_tracer_step_categorization():
     agent_action_no_tool.tool = ""
     agent_action_no_tool.tool_input = {}
     step_type = tracer._categorize_step("Thinking...", agent_action_no_tool)
-    assert step_type == StepType.AI_MESSAGE
+    assert step_type.value == StepType.AI_MESSAGE.value
     
     # Test HumanMessage categorization
     human_input = Mock(spec=[])  # No result/result_as_answer attributes
     step_type = tracer._categorize_step("Task: Calculate 2+2", human_input)
-    assert step_type == StepType.HUMAN_MESSAGE
+    assert step_type.value == StepType.HUMAN_MESSAGE.value
     
     # Test default AIMessage categorization
     generic_output = Mock(spec=[])  # No result/result_as_answer/thought attributes
     step_type = tracer._categorize_step("Some response", generic_output)
-    assert step_type == StepType.AI_MESSAGE
+    assert step_type.value == StepType.AI_MESSAGE.value
 
 
 def test_execution_tracer_content_extraction():
@@ -234,7 +234,7 @@ def test_execution_tracer_callbacks():
     result = tracer.on_crew_start(inputs)
     assert result == inputs
     assert len(tracer.trace.steps) == 1
-    assert tracer.trace.steps[0].step_type == StepType.CREW_START
+    assert tracer.trace.steps[0].step_type.value == StepType.CREW_START.value
     
     # Test on_step_complete
     agent_output = Mock()
@@ -245,6 +245,11 @@ def test_execution_tracer_callbacks():
     result = tracer.on_step_complete(agent_output)
     assert result == agent_output  # Should return the input unchanged
     assert len(tracer.trace.steps) == 2  # Added one more step
+    
+    # Check captured metadata
+    step = tracer.trace.steps[1]
+    assert step.metadata["raw_output_type"] == "Mock"
+    assert "task" in step.metadata
     
     # Test on_task_complete
     task_output = Mock()

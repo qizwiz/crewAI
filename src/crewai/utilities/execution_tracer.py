@@ -22,10 +22,14 @@ Usage:
     print(result.interaction_logs)   # Categorized logs
 """
 
+import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+# Content length limit for execution steps
+MAX_CONTENT_LENGTH = 500
 
 
 class StepType(str, Enum):
@@ -56,7 +60,7 @@ class ExecutionStep:
             "agent": self.agent_name,
             "content": self.content,
             "timestamp": self.timestamp,
-            "time": datetime.fromtimestamp(self.timestamp).strftime("%H:%M:%S.%f")[:-3],
+            "time": datetime.fromtimestamp(self.timestamp, tz=timezone.utc).strftime("%H:%M:%S.%f")[:-3],
             "metadata": self.metadata
         }
 
@@ -119,10 +123,10 @@ class ExecutionTracer:
         self.trace.add_step(
             step_type=step_type,
             agent_name=agent_name,
-            content=content[:500],  # Limit content length
+            content=content[:MAX_CONTENT_LENGTH],  # Limit content length
             raw_output_type=type(agent_output).__name__,
             task=self.current_task.description if self.current_task else None,
-            **metadata
+            **self._json_safe(metadata)
         )
         
         return agent_output
@@ -137,7 +141,7 @@ class ExecutionTracer:
         self.trace.add_step(
             step_type=StepType.TASK_COMPLETE,
             agent_name=agent_name,
-            content=f"Task: {task_description}\nResult: {task_result}",
+            content=f"Task: {task_description}\nResult: {task_result}"[:MAX_CONTENT_LENGTH],
             task_description=task_description,
             task_name=getattr(task_output, 'name', None),
             raw_result=task_result
@@ -183,7 +187,7 @@ class ExecutionTracer:
     def _extract_content(self, agent_output: Any) -> str:
         """Extract content from agent output"""
         # ToolResult objects
-        if hasattr(agent_output, 'result') and hasattr(agent_output, 'result_as_answer'):
+        if hasattr(agent_output, 'result'):
             return f"Tool returned: {str(agent_output.result)[:200]}"
         
         # AgentAction objects
@@ -212,7 +216,7 @@ class ExecutionTracer:
         """Categorize step type based on agent output analysis"""
         
         # ToolResult objects -> ToolMessage
-        if hasattr(agent_output, 'result') and hasattr(agent_output, 'result_as_answer'):
+        if hasattr(agent_output, 'result'):
             return StepType.TOOL_MESSAGE
         
         # AgentAction objects
@@ -229,3 +233,15 @@ class ExecutionTracer:
             return StepType.HUMAN_MESSAGE
         else:
             return StepType.AI_MESSAGE
+    
+    def _json_safe(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensure metadata values are JSON-serializable"""
+        safe_metadata = {}
+        for key, value in metadata.items():
+            try:
+                json.dumps(value)  # Test if serializable
+                safe_metadata[key] = value
+            except (TypeError, ValueError):
+                # Convert to string if not serializable
+                safe_metadata[key] = str(value)
+        return safe_metadata
