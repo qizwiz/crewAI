@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import inspect
 import textwrap
-from typing import Any, Callable, Optional, Union, get_type_hints
+from typing import Any, Callable, Optional, Type, Union, get_type_hints
 
 from pydantic import BaseModel, Field, create_model
 
 from crewai.utilities.logger import Logger
+from crewai.utilities.model_factory import create_args_schema
 
 
 class CrewStructuredTool:
@@ -125,7 +126,7 @@ class CrewStructuredTool:
         type_hints = get_type_hints(func)
 
         # Create field definitions
-        fields = {}
+        field_definitions = {}
         for param_name, param in sig.parameters.items():
             # Skip self/cls for methods
             if param_name in ("self", "cls"):
@@ -134,15 +135,17 @@ class CrewStructuredTool:
             # Get type annotation
             annotation = type_hints.get(param_name, Any)
 
-            # Get default value
-            default = ... if param.default == param.empty else param.default
-
-            # Add field
-            fields[param_name] = (annotation, Field(default=default))
+            # Get default value and create field definition
+            if param.default == param.empty:
+                # Required field
+                field_definitions[param_name] = (annotation, ...)
+            else:
+                # Optional field with default
+                field_definitions[param_name] = (annotation, param.default)
 
         # Create model
         schema_name = f"{name.title()}Schema"
-        return create_model(schema_name, **fields)
+        return create_args_schema(schema_name, field_definitions)
 
     def _validate_function_signature(self) -> None:
         """Validate that the function signature matches the args schema."""
