@@ -476,7 +476,7 @@ def test_tool_selection_error_event_direct():
     def event_handler(source, event):
         received_events.append(event)
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(Exception):
         tool_usage._select_tool("Non Existent Tool")
     assert len(received_events) == 1
     event = received_events[0]
