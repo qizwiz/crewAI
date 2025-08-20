@@ -417,7 +417,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
             # Execute listeners of this listener
             await self._execute_listeners(listener_name, listener_result)
-        except Exception as e:
+        except (TypeError, AttributeError, ValueError) as e:
             print(
                 f"[Flow._execute_single_listener] Error in method {listener_name}: {e}"
             )

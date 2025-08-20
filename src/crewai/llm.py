@@ -185,7 +185,7 @@ class LLM:
     def supports_function_calling(self) -> bool:
         try:
             params = get_supported_openai_params(model=self.model)
-            return params is not None and "response_format" in params
+            return params is not None and ("tools" in params or "functions" in params)
         except Exception as e:
             logging.error(f"Failed to get supported params: {str(e)}")
             return False

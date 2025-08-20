@@ -31,18 +31,13 @@ class BaseAgentTool(BaseTool):
             if agent_name is None:
                 agent_name = ""
 
-            # It is important to remove the quotes from the agent name.
-            # The reason we have to do this is because less-powerful LLM's
-            # have difficulty producing valid JSON.
-            # As a result, we end up with invalid JSON that is truncated like this:
-            # {"task": "....", "coworker": "....
-            # when it should look like this:
-            # {"task": "....", "coworker": "...."}
-            agent_name = agent_name.casefold().replace('"', "").replace("\n", "")
+            # Normalize agent name for matching (handle malformed JSON and whitespace)
+            normalized_agent_name = agent_name.casefold().replace('"', "").replace("\n", "")
+            
+            # Find first matching agent by role
             matching_agents = [
-                available_agent
-                for available_agent in self.agents
-                if available_agent.role.casefold().replace("\n", "") == agent_name
+                agent for agent in self.agents 
+                if agent.role.casefold().replace("\n", "") == normalized_agent_name
             ]
         except Exception as _:
             return self.i18n.errors("agent_tool_unexisting_coworker").format(
