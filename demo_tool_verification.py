@@ -26,13 +26,10 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from crewai.utilities.tool_execution_verifier import (
     ToolExecutionMonitor, 
-    ExecutionAuthenticityLevel,
     verify_tool_execution
 )
 from crewai.utilities.tool_execution_wrapper import (
     wrap_function_with_verification,
-    enable_tool_verification,
-    get_global_verification_statistics
 )
 
 
@@ -68,9 +65,9 @@ def real_search_tool(query: str) -> str:
         index_file = f.name
     
     try:
-        # Read back the results
+        # Read back the results to verify it worked
         with open(index_file, 'r') as f:
-            content = f.read()
+            f.read()  # Verify file is readable
         
         os.unlink(index_file)  # Clean up
         return f"Search completed for '{query}'. Found 3 results in index."
@@ -118,12 +115,12 @@ def run_verification_demo():
         
         # Verify the file actually exists
         if os.path.exists(test_file):
-            print(f"✅ Verification: File actually exists on disk!")
+            print("✅ Verification: File actually exists on disk!")
             with open(test_file, 'r') as f:
                 actual_content = f.read()
             print(f"📄 File Content: '{actual_content}'")
         else:
-            print(f"❌ Verification: File does not exist on disk!")
+            print("❌ Verification: File does not exist on disk!")
         
         print()
         
@@ -149,9 +146,9 @@ def run_verification_demo():
         
         # Verify the file does NOT exist
         if os.path.exists(fake_file):
-            print(f"❌ Verification: File unexpectedly exists on disk!")
+            print("❌ Verification: File unexpectedly exists on disk!")
         else:
-            print(f"✅ Verification: File correctly does not exist (fabricated result)")
+            print("✅ Verification: File correctly does not exist (fabricated result)")
         
         print()
         
@@ -203,9 +200,9 @@ def run_verification_demo():
             print(f"✅ Strict mode correctly blocked fabricated tool: {str(e)}")
         else:
             if certificate.is_fabricated():
-                print(f"❌ Strict mode should have blocked this fabricated result!")
+                print("❌ Strict mode should have blocked this fabricated result!")
             else:
-                print(f"✅ Tool passed strict mode verification")
+                print("✅ Tool passed strict mode verification")
         
         print()
         
