@@ -4,8 +4,6 @@ Test enhanced configurability features from CodeRabbit improvements
 """
 
 import sys
-import tempfile
-import os
 from pathlib import Path
 
 # Add the src directory to the path

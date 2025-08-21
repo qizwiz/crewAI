@@ -22,7 +22,7 @@ import psutil
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ class ToolExecutionMonitor:
         "task completed", "process finished", "output generated", "results obtained"
     ]
     
-    def __init__(self, strict_mode: bool = False, fabrication_patterns: List[str] = None, max_scan_depth: int = 1):
+    def __init__(self, strict_mode: bool = False, fabrication_patterns: Optional[List[str]] = None, max_scan_depth: int = 1):
         """
         Initialize the monitor.
         
@@ -367,7 +367,7 @@ class ToolExecutionMonitor:
         }
 
 
-def verify_tool_execution(tool_name: str, tool_function: Callable, *args, monitor: ToolExecutionMonitor = None, **kwargs) -> Tuple[Any, ToolExecutionCertificate]:
+def verify_tool_execution(tool_name: str, tool_function: Callable, *args, monitor: Optional[ToolExecutionMonitor] = None, **kwargs) -> Tuple[Any, ToolExecutionCertificate]:
     """
     Convenience function to verify a single tool execution.
     
