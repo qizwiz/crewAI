@@ -275,7 +275,14 @@ class Crew(FlowTrackable, BaseModel):
         """
 
         # TODO: Improve typing
-        return json.loads(v) if isinstance(v, Json) else v  # type: ignore
+        if isinstance(v, Json):
+            if not v or not v.strip():
+                return {}
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return {}
+        return v  # type: ignore
 
     @model_validator(mode="after")
     def set_private_attrs(self) -> "Crew":
