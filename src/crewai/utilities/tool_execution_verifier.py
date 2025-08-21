@@ -88,14 +88,29 @@ class ToolExecutionCertificate:
 class ToolExecutionMonitor:
     """Monitors tool execution for authenticity verification."""
     
-    def __init__(self, strict_mode: bool = False):
+    DEFAULT_FABRICATION_PATTERNS = [
+        "successfully created", "file has been written", "operation completed successfully",
+        "I have created", "search results show", "I found", "analysis shows",
+        "data has been", "content written to", "saved to file", "executed successfully",
+        "task completed", "process finished", "output generated", "results obtained"
+    ]
+    
+    def __init__(self, strict_mode: bool = False, fabrication_patterns: List[str] = None, max_scan_depth: int = 1):
         """
         Initialize the monitor.
         
         Args:
             strict_mode: If True, raises exceptions for likely fabricated results
+            fabrication_patterns: Custom patterns to detect fabrication (uses defaults if None)
+            max_scan_depth: Maximum directory depth to scan for filesystem changes (default: 1)
+        
+        Note:
+            This class is NOT thread-safe. Do not share instances across threads without 
+            external synchronization. Each thread should create its own monitor instance.
         """
         self.strict_mode = strict_mode
+        self.fabrication_patterns = fabrication_patterns or self.DEFAULT_FABRICATION_PATTERNS
+        self.max_scan_depth = max_scan_depth
         self.baseline_filesystem_state: Set[str] = set()
         self.baseline_processes: Set[int] = set()
         self.start_time: float = 0.0
@@ -289,15 +304,9 @@ class ToolExecutionMonitor:
             return ExecutionAuthenticityLevel.LIKELY_REAL
         
         # Check for fabrication patterns in the result
-        fabrication_patterns = [
-            "successfully created", "file has been written", "operation completed successfully",
-            "I have created", "search results show", "I found", "analysis shows",
-            "data has been", "content written to", "saved to file", "executed successfully"
-        ]
-        
         result_text = str(tool_result).lower()
         fabrication_indicators = [
-            pattern for pattern in fabrication_patterns 
+            pattern for pattern in self.fabrication_patterns 
             if pattern in result_text
         ]
         
@@ -335,15 +344,8 @@ class ToolExecutionMonitor:
     
     def _detect_fabrication_patterns(self, tool_result: Any) -> List[str]:
         """Detect common LLM fabrication patterns in tool results."""
-        fabrication_patterns = [
-            "successfully created", "file has been written", "operation completed successfully",
-            "I have created", "search results show", "I found", "analysis shows",
-            "data has been", "content written to", "saved to file", "executed successfully",
-            "task completed", "process finished", "output generated", "results obtained"
-        ]
-        
         result_text = str(tool_result).lower()
-        return [pattern for pattern in fabrication_patterns if pattern in result_text]
+        return [pattern for pattern in self.fabrication_patterns if pattern in result_text]
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get monitoring statistics."""
@@ -365,19 +367,22 @@ class ToolExecutionMonitor:
         }
 
 
-def verify_tool_execution(tool_name: str, tool_function: Callable, *args, **kwargs) -> Tuple[Any, ToolExecutionCertificate]:
+def verify_tool_execution(tool_name: str, tool_function: Callable, *args, monitor: ToolExecutionMonitor = None, **kwargs) -> Tuple[Any, ToolExecutionCertificate]:
     """
     Convenience function to verify a single tool execution.
     
     Args:
         tool_name: Name of the tool being executed
         tool_function: The tool function to execute
-        *args, **kwargs: Arguments to pass to the tool function
+        *args: Arguments to pass to the tool function
+        monitor: Optional custom monitor instance (creates default if None)
+        **kwargs: Keyword arguments to pass to the tool function
     
     Returns:
         Tuple of (tool_result, verification_certificate)
     """
-    monitor = ToolExecutionMonitor()
+    if monitor is None:
+        monitor = ToolExecutionMonitor()
     monitor.start_monitoring()
     
     try:
@@ -392,43 +397,4 @@ def verify_tool_execution(tool_name: str, tool_function: Callable, *args, **kwar
     return result, certificate
 
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Example of a real tool that actually does filesystem operations
-    def real_file_writer(filename: str, content: str) -> str:
-        """A real tool that actually writes to filesystem."""
-        with open(filename, 'w') as f:
-            f.write(content)
-        return f"Successfully wrote {len(content)} characters to {filename}"
-    
-    # Example of a fake tool that fabricates results
-    def fake_file_writer(filename: str, content: str) -> str:
-        """A fake tool that fabricates filesystem operations."""
-        return f"I have successfully created file '{filename}' with {len(content)} characters. The file has been written to disk."
-    
-    print("=== Tool Execution Verification Demo ===\n")
-    
-    # Test real tool
-    print("Testing REAL tool execution:")
-    result, cert = verify_tool_execution("FileWriter", real_file_writer, "test_real.txt", "Hello World!")
-    print(f"Result: {result}")
-    print(f"Authenticity: {cert.authenticity_level.value}")
-    print(f"Confidence: {cert.confidence_score:.2f}")
-    print(f"Evidence: subprocess={cert.evidence.subprocess_spawned}, filesystem={cert.evidence.filesystem_changes}")
-    print(f"Fabrication indicators: {cert.fabrication_indicators}")
-    print()
-    
-    # Test fake tool
-    print("Testing FAKE tool execution:")
-    result, cert = verify_tool_execution("FakeFileWriter", fake_file_writer, "test_fake.txt", "Hello World!")
-    print(f"Result: {result}")
-    print(f"Authenticity: {cert.authenticity_level.value}")
-    print(f"Confidence: {cert.confidence_score:.2f}")
-    print(f"Evidence: subprocess={cert.evidence.subprocess_spawned}, filesystem={cert.evidence.filesystem_changes}")
-    print(f"Fabrication indicators: {cert.fabrication_indicators}")
-    
-    # Cleanup
-    try:
-        os.remove("test_real.txt")
-    except FileNotFoundError:
-        pass
+# For usage examples and testing, see demo_tool_verification.py and quick_tool_check.py

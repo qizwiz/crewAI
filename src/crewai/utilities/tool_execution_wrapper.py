@@ -69,6 +69,12 @@ class VerifiedToolWrapper:
             certificate = monitor.stop_monitoring_and_verify(tool_name, result)
             self.verification_results.append(certificate)
             
+            # Record in global handler
+            try:
+                global_verification_handler.handle_verification_result(certificate)
+            except Exception:
+                logger.debug("Failed to record verification result globally")
+            
             # Log verification results for failed executions
             logger.warning(f"Tool '{tool_name}' failed but verification completed: {certificate.authenticity_level.value}")
             raise
@@ -77,9 +83,17 @@ class VerifiedToolWrapper:
             certificate = monitor.stop_monitoring_and_verify(tool_name, result)
             self.verification_results.append(certificate)
             
+            # Record in global handler
+            try:
+                global_verification_handler.handle_verification_result(certificate)
+            except Exception as e:
+                logger.debug(f"Failed to record verification result globally: {e}")
+            
             # Log verification results
             if certificate.is_fabricated():
                 logger.warning(f"Tool fabrication detected: {tool_name} - {certificate.authenticity_level.value}")
+                if self.strict_mode:
+                    raise RuntimeError(f"Fabricated result blocked (strict_mode): {tool_name}")
             else:
                 logger.info(f"Tool execution verified: {tool_name} - {certificate.authenticity_level.value}")
             
