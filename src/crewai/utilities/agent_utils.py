@@ -83,7 +83,7 @@ def handle_max_iterations_exceeded(
         The final formatted answer after exceeding max iterations.
     """
     printer.print(
-        content="Maximum iterations reached. Requesting final answer.",
+        content="I tried reusing the same input, I must stop using this action input.",
         color="yellow",
     )
 
