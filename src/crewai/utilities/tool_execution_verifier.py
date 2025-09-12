@@ -13,8 +13,9 @@ import uuid
 import time
 import threading
 from dataclasses import dataclass
-from typing import Dict, Optional, Any, Union
+from typing import Dict, Optional, Any
 from enum import Enum
+
 
 class ExecutionStatus(Enum):
     """Status of tool execution"""
