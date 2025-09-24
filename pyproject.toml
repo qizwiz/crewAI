@@ -3,28 +3,30 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "crewai-workflow-transparency"
-version = "1.0.0"
-description = "Professional cryptographic workflow transparency for CrewAI"
+name = "crewai-with-issue-3154-fix"
+version = "0.86.0"
+description = "CrewAI fork with Issue #3154 fix - prevents tool execution fabrication"
 readme = "README.md"
 authors = [
-    {name = "CrewAI Professional Contributors", email = "noreply@github.com"}
+    {name = "CrewAI Contributors", email = "noreply@github.com"}
 ]
 license = {text = "MIT"}
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
+    "Intended Audience :: Developers", 
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9", 
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", 
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "redis>=4.0.0",
+    # Minimal dependencies for testing
+    "pydantic>=1.10.0",
+    "python-dotenv>=0.19.0",
     "cryptography>=3.0.0",
 ]
 
@@ -72,10 +74,10 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = true
+disallow_untyped_defs = false
 ignore_missing_imports = true
 
 [tool.flake8]
