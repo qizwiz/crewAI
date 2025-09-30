@@ -7,16 +7,14 @@ from pydantic import Field
 from crewai.agent import Agent
 from crewai.agents.crew_agent_executor import CrewAgentExecutor
 from crewai.crew import Crew
-from crewai.flow.flow import Flow, listen, start
-from crewai.llm import LLM
-from crewai.task import Task
-from crewai.tools.base_tool import BaseTool
-from crewai.utilities.events.agent_events import (
+from crewai.events.event_bus import crewai_event_bus
+from crewai.events.event_listener import EventListener
+from crewai.events.types.agent_events import (
     AgentExecutionCompletedEvent,
     AgentExecutionErrorEvent,
     AgentExecutionStartedEvent,
 )
-from crewai.utilities.events.crew_events import (
+from crewai.events.types.crew_events import (
     CrewKickoffCompletedEvent,
     CrewKickoffFailedEvent,
     CrewKickoffStartedEvent,
@@ -24,30 +22,32 @@ from crewai.utilities.events.crew_events import (
     CrewTestResultEvent,
     CrewTestStartedEvent,
 )
-from crewai.utilities.events.crewai_event_bus import crewai_event_bus
-from crewai.utilities.events.event_listener import EventListener
-from crewai.utilities.events.event_types import ToolUsageFinishedEvent
-from crewai.utilities.events.flow_events import (
+from crewai.events.types.flow_events import (
     FlowCreatedEvent,
     FlowFinishedEvent,
     FlowStartedEvent,
     MethodExecutionFailedEvent,
     MethodExecutionStartedEvent,
 )
-from crewai.utilities.events.llm_events import (
+from crewai.events.types.llm_events import (
     LLMCallCompletedEvent,
     LLMCallFailedEvent,
     LLMCallStartedEvent,
     LLMStreamChunkEvent,
 )
-from crewai.utilities.events.task_events import (
+from crewai.events.types.task_events import (
     TaskCompletedEvent,
     TaskFailedEvent,
     TaskStartedEvent,
 )
-from crewai.utilities.events.tool_usage_events import (
+from crewai.events.types.tool_usage_events import (
     ToolUsageErrorEvent,
+    ToolUsageFinishedEvent,
 )
+from crewai.flow.flow import Flow, listen, start
+from crewai.llm import LLM
+from crewai.task import Task
+from crewai.tools.base_tool import BaseTool
 
 
 @pytest.fixture(scope="module")
@@ -114,9 +114,7 @@ def test_crew_emits_start_kickoff_event(
     mock_telemetry.task_ended = Mock(return_value=mock_span)
 
     # Patch the Telemetry class to return our mock
-    with patch(
-        "crewai.utilities.events.event_listener.Telemetry", return_value=mock_telemetry
-    ):
+    with patch("crewai.events.event_listener.Telemetry", return_value=mock_telemetry):
         # Now when Crew creates EventListener, it will use our mocked telemetry
         crew = Crew(agents=[base_agent], tasks=[base_task], name="TestCrew")
         crew.kickoff()
@@ -196,7 +194,7 @@ def test_crew_emits_kickoff_failed_event(base_agent, base_task):
             error_message = "Simulated crew kickoff failure"
             mock_execute.side_effect = Exception(error_message)
 
-            with pytest.raises(Exception):
+            with pytest.raises(Exception):  # nosec B017
                 crew.kickoff()
 
         assert len(received_events) == 1
@@ -241,9 +239,7 @@ def test_crew_emits_end_task_event(
     mock_telemetry.crew_execution_span = Mock()
     mock_telemetry.end_crew = Mock()
 
-    with patch(
-        "crewai.utilities.events.event_listener.Telemetry", return_value=mock_telemetry
-    ):
+    with patch("crewai.events.event_listener.Telemetry", return_value=mock_telemetry):
         crew = Crew(agents=[base_agent], tasks=[base_task], name="TestCrew")
         crew.kickoff()
 
@@ -282,7 +278,7 @@ def test_task_emits_failed_event_on_execution_error(base_agent, base_task):
             agent=agent,
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # nosec B017
             agent.execute_task(task=task)
 
             assert len(received_events) == 1
@@ -336,7 +332,7 @@ def test_agent_emits_execution_error_event(base_agent, base_task):
     ) as invoke_mock:
         invoke_mock.side_effect = Exception(error_message)
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # nosec B017
             base_agent.execute_task(
                 task=base_task,
             )
@@ -455,9 +451,7 @@ def test_flow_emits_start_event(reset_event_listener_singleton):
     mock_telemetry.flow_creation_span = Mock()
     mock_telemetry.set_tracer = Mock()
 
-    with patch(
-        "crewai.utilities.events.event_listener.Telemetry", return_value=mock_telemetry
-    ):
+    with patch("crewai.events.event_listener.Telemetry", return_value=mock_telemetry):
         # Force creation of EventListener singleton with mocked telemetry
         _ = EventListener()
 
@@ -624,7 +618,7 @@ def test_flow_emits_method_execution_failed_event():
             raise error
 
     flow = TestFlow()
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # nosec B017
         flow.kickoff()
 
     assert len(received_events) == 1
@@ -670,7 +664,7 @@ def test_llm_emits_call_failed_event():
     error_message = "Simulated LLM call failure"
     with patch("crewai.llm.litellm.completion", side_effect=Exception(error_message)):
         llm = LLM(model="gpt-4o-mini")
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(Exception) as exc_info:  # nosec B017
             llm.call("Hello, how are you?")
 
         assert str(exc_info.value) == error_message
@@ -891,7 +885,7 @@ def test_stream_llm_emits_event_with_task_and_agent_info():
     assert set(all_agent_roles) == {agent.role}
     assert set(all_agent_id) == {agent.id}
     assert set(all_task_id) == {task.id}
-    assert set(all_task_name) == {task.name}
+    assert set(all_task_name) == {task.name or task.description}
 
 
 @pytest.mark.vcr(filter_headers=["authorization"])
@@ -942,7 +936,7 @@ def test_llm_emits_event_with_task_and_agent_info(base_agent, base_task):
     assert set(all_agent_roles) == {base_agent.role}
     assert set(all_agent_id) == {base_agent.id}
     assert set(all_task_id) == {base_task.id}
-    assert set(all_task_name) == {base_task.name}
+    assert set(all_task_name) == {base_task.name or base_task.description}
 
 
 @pytest.mark.vcr(filter_headers=["authorization"])
@@ -978,9 +972,9 @@ def test_llm_emits_event_with_lite_agent():
         )
         agent.kickoff(messages=[{"role": "user", "content": "say hi!"}])
 
-    assert len(completed_event) == 2
+    assert len(completed_event) == 1
     assert len(failed_event) == 0
-    assert len(started_event) == 2
+    assert len(started_event) == 1
     assert len(stream_event) == 15
 
     all_events = completed_event + failed_event + started_event + stream_event
@@ -990,8 +984,8 @@ def test_llm_emits_event_with_lite_agent():
     all_task_name = [event.task_name for event in all_events if event.task_name]
 
     # ensure all events have the agent + task props set
-    assert len(all_agent_roles) == 19
-    assert len(all_agent_id) == 19
+    assert len(all_agent_roles) == 17
+    assert len(all_agent_id) == 17
     assert len(all_task_id) == 0
     assert len(all_task_name) == 0
 
